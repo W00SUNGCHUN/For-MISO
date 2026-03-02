@@ -11,8 +11,10 @@
       --stroke: rgba(255,255,255,.18);
       --text:#e9ecff;
       --muted: rgba(233,236,255,.75);
-      --pillW: clamp(120px, 34vw, 190px);
       --ok:#7CFFB2;
+
+      /* ✅ 반응형 캡슐/틀 너비 (모바일 기준) */
+      --pillW: clamp(110px, 30vw, 170px);
     }
     *{box-sizing:border-box}
     body{
@@ -23,7 +25,9 @@
                   linear-gradient(160deg,var(--bg1),var(--bg2));
       color:var(--text);
       font-family: system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,"Noto Sans KR",sans-serif;
-      overflow:hidden;
+
+      /* ✅ 세로 스크롤 허용 (가로만 차단) */
+      overflow-x:hidden;
     }
     .wrap{width:min(980px,92vw); padding:20px; display:grid; gap:18px}
     .top{
@@ -50,14 +54,15 @@
     }
     .btn:active{transform: translateY(1px)}
     .stage{
-       position:relative;
-       background: var(--card);
-       border:1px solid var(--stroke);
-       border-radius:24px;
-       height: min(660px, 82vh);
-       box-shadow: 0 18px 55px rgba(0,0,0,.35);
-       backdrop-filter: blur(12px);
-       overflow:hidden;
+      position:relative;
+      background: var(--card);
+      border:1px solid var(--stroke);
+      border-radius:24px;
+      /* ✅ 화면 기준 높이 */
+      height: min(660px, 82vh);
+      box-shadow: 0 18px 55px rgba(0,0,0,.35);
+      backdrop-filter: blur(12px);
+      overflow:hidden;
     }
     .stage::before{
       content:"";
@@ -78,6 +83,7 @@
       padding:10px 12px;
       border-radius:14px;
       backdrop-filter: blur(10px);
+      z-index:2;
     }
 
     /* Target silhouette */
@@ -86,12 +92,12 @@
       right: clamp(18px, 6vw, 60px);
       top: 50%;
       transform: translateY(-50%);
-      width: 190px; height: 360px;
       border-radius: 120px;
       border: 2px dashed rgba(233,236,255,.35);
       background: rgba(255,255,255,.05);
       display:grid; place-items:center;
       transition: .2s ease;
+      z-index:1;
     }
     .target .label{
       text-align:center;
@@ -111,19 +117,12 @@
       background: rgba(124,255,178,.10);
     }
 
-    .target, .capsule{
-      width: var(--pillW);
-      aspect-ratio: 190 / 360;
-      height: auto;
-    }
-    
     /* Capsule draggable */
     .capsule{
       position:absolute;
       left: clamp(18px, 5vw, 60px);
       top: 52%;
       transform: translateY(-50%);
-      width: 190px; height: 360px;
       border-radius: 120px;
       cursor: grab;
       user-select:none;
@@ -131,38 +130,50 @@
       display:grid; place-items:center;
       filter: drop-shadow(0 18px 25px rgba(0,0,0,.35));
       transition: transform .12s ease;
+      z-index:1;
     }
     .capsule:active{cursor:grabbing}
     .capsule .cap{
-      width: 190px; height: 360px;
+      width: 100%;
+      height: 100%;
       border-radius: 120px;
       overflow:hidden;
       border: 1px solid rgba(255,255,255,.22);
       background: rgba(255,255,255,.05);
     }
 
-    /* SVG scales */
+    /* ✅ 캡슐/틀 크기 완전 동일(핵심) */
+    .target, .capsule{
+      width: var(--pillW);
+      aspect-ratio: 190 / 360;
+      height: auto;
+    }
+
     svg{display:block; width:100%; height:100%}
 
     /* Letter modal */
     .overlay{
-      position:absolute; inset:0;
+      position:fixed; inset:0;
       display:none;
       align-items:center; justify-content:center;
       background: rgba(0,0,0,.45);
       backdrop-filter: blur(6px);
       padding:18px;
+      z-index:999;
     }
     .overlay.show{display:flex}
     .letter{
       width:min(720px, 94vw);
+      max-height: min(78vh, 720px);
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+
       background: rgba(15,18,32,.82);
       border: 1px solid rgba(255,255,255,.20);
       border-radius: 24px;
       padding: 22px 20px;
       box-shadow: 0 22px 70px rgba(0,0,0,.55);
       position:relative;
-      overflow:hidden;
     }
     .letter::before{
       content:"";
@@ -182,7 +193,10 @@
       position:relative;
     }
     .close{
-      position:absolute; top:14px; right:14px;
+      position:sticky;
+      top:0;
+      float:right;
+
       border:1px solid rgba(255,255,255,.22);
       background: rgba(255,255,255,.08);
       color:var(--text);
@@ -202,48 +216,54 @@
       border-radius: 999px;
       backdrop-filter: blur(10px);
       display:none;
+      z-index:2;
     }
     .toast.show{display:block}
 
+    /* ✅ 모바일 레이아웃: 위(캡슐) / 아래(틀) */
     @media (max-width: 640px){
-  .wrap{gap:12px}
-  .top{flex-direction:column; align-items:stretch}
-  .btn{width:100%}
+      .wrap{gap:12px}
+      .top{flex-direction:column; align-items:stretch}
+      .btn{width:100%}
 
-  .hint{
-    left:12px; right:12px;
-    width:auto;
-  }
+      .hint{
+        left:12px; right:12px;
+        width:auto;
+      }
 
-  /* 모바일: 틀은 아래쪽 중앙 */
-  .target{
-    left: 50%;
-    right: auto;
-    top: 70%;
-    transform: translate(-50%, -50%);
-  }
+      /* stage가 너무 꽉 차면 답답하니 모바일에서 auto로 */
+      .stage{
+        height:auto;
+        min-height: 78vh;
+        padding-bottom: 18px;
+      }
 
-  /* 모바일: 캡슐은 위쪽 중앙 */
-  .capsule{
-    left: 50%;
-    top: 32%;
-    transform: translate(-50%, -50%);
-  }
-}
+      .target{
+        left: 50%;
+        right: auto;
+        top: 72%;
+        transform: translate(-50%, -50%);
+      }
+      .capsule{
+        left: 50%;
+        top: 30%;
+        transform: translate(-50%, -50%);
+      }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
       <div class="title">
-        <h1>캡슐을 틀에 맞춰봐!</h1>
-        <p>캡슐을 드래그해서 오른쪽 실루엣에 “촵” 넣어보세요.</p>
+        <h1>캡슐을 틀에 맞추면 편지가 열려요</h1>
+        <p>캡슐을 드래그해서 틀(실루엣)에 “촵” 넣어보세요. </p>
       </div>
       <button class="btn" id="resetBtn">처음으로</button>
     </div>
 
     <div class="stage" id="stage">
-      <div class="hint" id="hint">힌트: 촴소스촴소스~촴촴~소스소스 ✨</div>
+      <div class="hint" id="hint"> 쵐소스쵑소스~ ✨</div>
 
       <div class="target" id="target" aria-label="capsule target">
         <div class="label">여기에 맞추기<br/>딱 맞으면 편지 OPEN</div>
@@ -251,18 +271,22 @@
 
       <div class="capsule" id="capsule" role="button" aria-label="capsule draggable">
         <div class="cap">
-          <!-- Capsule SVG (built-in image) -->
+          <!-- Capsule SVG (white + red) -->
           <svg viewBox="0 0 190 360" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="g1" x1="0" x2="1">
-                <stop offset="0" stop-color="rgba(255,255,255,.35)"/>
-                <stop offset=".55" stop-color="rgba(255,255,255,.10)"/>
-                <stop offset="1" stop-color="rgba(255,255,255,.25)"/>
+                <stop offset="0" stop-color="rgba(255,255,255,.40)"/>
+                <stop offset=".55" stop-color="rgba(255,255,255,.12)"/>
+                <stop offset="1" stop-color="rgba(255,255,255,.28)"/>
               </linearGradient>
+
+              <!-- ✅ Top: red -->
               <linearGradient id="pillTop" x1="0" x2="1">
                 <stop offset="0" stop-color="#ff5a5a"/>
                 <stop offset="1" stop-color="#b00020"/>
               </linearGradient>
+
+              <!-- ✅ Bottom: white -->
               <linearGradient id="pillBottom" x1="0" x2="1">
                 <stop offset="0" stop-color="#ffffff"/>
                 <stop offset="1" stop-color="#e6e6e6"/>
@@ -272,7 +296,7 @@
             <!-- Outer pill -->
             <rect x="6" y="6" width="178" height="348" rx="90" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.20)" />
             <!-- Split line -->
-            <rect x="6" y="178" width="178" height="4" fill="rgba(255,255,255,.25)" />
+            <rect x="6" y="178" width="178" height="4" fill="rgba(0,0,0,.12)" />
 
             <!-- Top half -->
             <path d="M16,180 V92 a79,79 0 0 1 158,0 v88 z" fill="url(#pillTop)" opacity="0.95"/>
@@ -290,34 +314,30 @@
                      c0-30 10-54 22-72z"
                   fill="url(#g1)" opacity="0.55"/>
 
-            <!-- tiny text -->
             <text x="95" y="210" text-anchor="middle" font-size="12" fill="rgba(0,0,0,.35)" font-family="system-ui, sans-serif">CAPSULE</text>
           </svg>
         </div>
       </div>
 
       <div class="toast" id="toast">딱 맞았어! 편지가 열립니다…</div>
+    </div>
+  </div>
 
-      <!-- Overlay letter -->
-      <div class="overlay" id="overlay" aria-hidden="true">
-        <div class="letter" role="dialog" aria-modal="true">
-          <button class="close" id="closeBtn">닫기</button>
-          <h2>To. 토실이 </h2>
-          <div class="meta">2026.03.02</div>
-          <div class="body" id="letterBody">
-            
+  <!-- Overlay letter -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="letter" role="dialog" aria-modal="true">
+      <button class="close" id="closeBtn">닫기</button>
+      <h2>To. MISO </h2>
+      <div class="meta">2026.03.02</div>
+      <div class="body" id="letterBody">
+        
 오늘 토실이의 새로운 챕터인 이쁜 언니로 약대 다니기의 첫날이다! 작년 여름에 겁 없이 걱정 반 불안 반으로 시작하게 된 도전이 이렇게 행복한 결과로 이어지게 되어서 나는 정말 너무 행복하고 토실이가 너무 멋있고 자랑스러워, 토실이가 친구들보다 나이가 많아서 쪼금 걱정하는 거 같은데, 알지? 처음에는 물론 친구들도 어색해할 수 있지만 나중에는 친구들도 미소도 적응해서 그냥 찬한 이쁜 언니가 되어서 잘 지내게 될 거라는 걸. 그러니! 학교 생활에 대한 걱정은 많이 담아두지 말고! 재밌고 멋있는 2번째 대학 생활을 즐겨!! 
 첫 번째 대학에서 데려온 전우성이 울 토실이 졸업까지 무한 서포트 해 줄 테니 걱정 마.
 수업 때 졸지 말고! 점심 저녁 든든하게 챙겨 먹고! 아프지 말고! 친구들이랑 잘 지내고! 
 짜증 나는 일, 슬픈 일 , 힘든 일 있으면 바로 말해 내가 곧바로 달려가서 안아줄게 
 
 개강 첫날 화이팅하고!! 사랑해 미소야💕
-
-P.S 이런 코딩편지 처음 만들어봤어...
-          </div>
-        </div>
       </div>
-
     </div>
   </div>
 
@@ -336,46 +356,8 @@ P.S 이런 코딩편지 처음 만들어봤어...
     let opened = false;
 
     function px(n){ return `${n}px`; }
-
-    function rect(el){
-      return el.getBoundingClientRect();
-    }
-
+    function rect(el){ return el.getBoundingClientRect(); }
     function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
-
-    function setPos(left, top){
-      capsule.style.left = px(left);
-      capsule.style.top  = px(top);
-      capsule.style.transform = 'translate(0,0)'; // we'll position absolutely
-    }
-
-    // Initialize absolute positioning relative to stage
-function initPos(){
-  const s = rect(stage);
-  const c = rect(capsule);
-  const isMobile = window.matchMedia("(max-width: 640px)").matches;
-
-  let left, top;
-
-  if(isMobile){
-    // 모바일: 캡슐을 상단 중앙에
-    left = (s.width - c.width) / 2;
-    top  = Math.max(90, (s.height * 0.18)); // 힌트 영역 아래
-  }else{
-    // PC: 기존처럼 좌측 중앙
-    left = 36;
-    top  = (s.height - c.height)/2;
-  }
-
-  capsule.style.left = px(left);
-  capsule.style.top  = px(top);
-  capsule.style.transform = 'translate(0,0)';
-
-  opened = false;
-  target.classList.remove('success');
-  overlay.classList.remove('show');
-  overlay.setAttribute('aria-hidden','true');
-}
 
     // check overlap score between capsule and target
     function overlapScore(a, b){
@@ -384,6 +366,16 @@ function initPos(){
       const overlapArea = xOverlap * yOverlap;
       const areaA = (a.right-a.left) * (a.bottom-a.top);
       return overlapArea / areaA; // how much of capsule is inside target
+    }
+
+    function openLetter(){
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden','false');
+    }
+
+    function closeLetter(){
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden','true');
     }
 
     function tryOpen(){
@@ -400,18 +392,17 @@ function initPos(){
       const ty = (t.top + t.bottom)/2;
 
       const dist = Math.hypot(cx-tx, cy-ty);
-      const maxDist = 28; // px
-      const pass = (score > 0.82) && (dist < maxDist);
+
+      // ✅ 모바일 친화적으로 완화
+      const maxDist = 40;
+      const pass = (score > 0.75) && (dist < maxDist);
 
       if(pass){
         opened = true;
         target.classList.add('success');
         toast.classList.add('show');
         setTimeout(()=> toast.classList.remove('show'), 900);
-        setTimeout(()=>{
-          overlay.classList.add('show');
-          overlay.setAttribute('aria-hidden','false');
-        }, 350);
+        setTimeout(openLetter, 350);
       }
     }
 
@@ -452,23 +443,18 @@ function initPos(){
       tryOpen();
     }
 
-    function pointerUp(e){
+    function pointerUp(){
       if(!dragging) return;
       dragging = false;
       target.classList.remove('active');
 
-      // if not opened, gently snap back if too far away (optional)
+      // If not opened and barely overlapping, snap back to start
       if(!opened){
-        // If overlap is small, return to start
         const c = rect(capsule);
         const t = rect(target);
         const score = overlapScore(c,t);
-        if(score < 0.25){
-          capsule.animate([
-            { transform: 'translate(0,0)' },
-          ], { duration: 0 });
 
-          // animate back using WAAPI by reading current and target positions
+        if(score < 0.25){
           const s = rect(stage);
           const curLeft = c.left - s.left;
           const curTop  = c.top  - s.top;
@@ -486,8 +472,33 @@ function initPos(){
       }
     }
 
+    function initPos(){
+      const s = rect(stage);
+      const c = rect(capsule);
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+
+      let left, top;
+
+      if(isMobile){
+        // 모바일: 캡슐 상단 중앙
+        left = (s.width - c.width) / 2;
+        top  = Math.max(90, (s.height * 0.18));
+      }else{
+        // PC: 좌측 중앙
+        left = 36;
+        top  = (s.height - c.height)/2;
+      }
+
+      capsule.style.left = px(left);
+      capsule.style.top  = px(top);
+      capsule.style.transform = 'translate(0,0)';
+
+      opened = false;
+      target.classList.remove('success');
+      closeLetter();
+    }
+
     function resetAll(){
-      // remove any inline animations state
       initPos();
     }
 
@@ -497,20 +508,12 @@ function initPos(){
     capsule.addEventListener('pointercancel', pointerUp);
 
     resetBtn.addEventListener('click', resetAll);
-    closeBtn.addEventListener('click', ()=> {
-      overlay.classList.remove('show');
-      overlay.setAttribute('aria-hidden','true');
-    });
+    closeBtn.addEventListener('click', closeLetter);
 
-    // click outside letter closes
     overlay.addEventListener('click', (e)=>{
-      if(e.target === overlay){
-        overlay.classList.remove('show');
-        overlay.setAttribute('aria-hidden','true');
-      }
+      if(e.target === overlay) closeLetter();
     });
 
-    // init once layout is ready
     window.addEventListener('load', initPos);
     window.addEventListener('resize', initPos);
   </script>
