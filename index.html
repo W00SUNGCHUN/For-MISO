@@ -11,6 +11,7 @@
       --stroke: rgba(255,255,255,.18);
       --text:#e9ecff;
       --muted: rgba(233,236,255,.75);
+      --pillW: clamp(120px, 34vw, 190px);
       --ok:#7CFFB2;
     }
     *{box-sizing:border-box}
@@ -49,14 +50,14 @@
     }
     .btn:active{transform: translateY(1px)}
     .stage{
-      position:relative;
-      background: var(--card);
-      border:1px solid var(--stroke);
-      border-radius:24px;
-      min-height: 520px;
-      box-shadow: 0 18px 55px rgba(0,0,0,.35);
-      backdrop-filter: blur(12px);
-      overflow:hidden;
+       position:relative;
+       background: var(--card);
+       border:1px solid var(--stroke);
+       border-radius:24px;
+       height: min(660px, 82vh);
+       box-shadow: 0 18px 55px rgba(0,0,0,.35);
+       backdrop-filter: blur(12px);
+       overflow:hidden;
     }
     .stage::before{
       content:"";
@@ -110,6 +111,12 @@
       background: rgba(124,255,178,.10);
     }
 
+    .target, .capsule{
+      width: var(--pillW);
+      aspect-ratio: 190 / 360;
+      height: auto;
+    }
+    
     /* Capsule draggable */
     .capsule{
       position:absolute;
@@ -197,6 +204,32 @@
       display:none;
     }
     .toast.show{display:block}
+
+    @media (max-width: 640px){
+  .wrap{gap:12px}
+  .top{flex-direction:column; align-items:stretch}
+  .btn{width:100%}
+
+  .hint{
+    left:12px; right:12px;
+    width:auto;
+  }
+
+  /* 모바일: 틀은 아래쪽 중앙 */
+  .target{
+    left: 50%;
+    right: auto;
+    top: 70%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* 모바일: 캡슐은 위쪽 중앙 */
+  .capsule{
+    left: 50%;
+    top: 32%;
+    transform: translate(-50%, -50%);
+  }
+}
   </style>
 </head>
 <body>
@@ -317,21 +350,32 @@ P.S 이런 코딩편지 처음 만들어봤어...
     }
 
     // Initialize absolute positioning relative to stage
-    function initPos(){
-      const s = rect(stage);
-      const c = rect(capsule);
+function initPos(){
+  const s = rect(stage);
+  const c = rect(capsule);
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
 
-      // place capsule left side center
-      const left = 36;
-      const top  = (s.height - c.height)/2;
-      capsule.style.left = px(left);
-      capsule.style.top  = px(top);
-      capsule.style.transform = 'translate(0,0)';
-      opened = false;
-      target.classList.remove('success');
-      overlay.classList.remove('show');
-      overlay.setAttribute('aria-hidden','true');
-    }
+  let left, top;
+
+  if(isMobile){
+    // 모바일: 캡슐을 상단 중앙에
+    left = (s.width - c.width) / 2;
+    top  = Math.max(90, (s.height * 0.18)); // 힌트 영역 아래
+  }else{
+    // PC: 기존처럼 좌측 중앙
+    left = 36;
+    top  = (s.height - c.height)/2;
+  }
+
+  capsule.style.left = px(left);
+  capsule.style.top  = px(top);
+  capsule.style.transform = 'translate(0,0)';
+
+  opened = false;
+  target.classList.remove('success');
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden','true');
+}
 
     // check overlap score between capsule and target
     function overlapScore(a, b){
